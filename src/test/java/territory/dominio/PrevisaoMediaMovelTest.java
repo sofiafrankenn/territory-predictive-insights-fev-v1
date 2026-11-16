@@ -27,12 +27,12 @@ class PrevisaoMediaMovelTest {
     void deveCalcularMediaDasUltimasCincoLeituras() throws DadosInvalidosException {
         // Arrange
         PrevisaoMediaMovel previsao = new PrevisaoMediaMovel(5);
-        List<Medicao> dados = historico(10, 20, 30, 40, 50, 1000);
+        List<Medicao> dados = historico(10, 20, 30, 40, 50, 150);
 
         // Act
         ResultadoPrevisao resultado = previsao.prever(dados);
 
-        // Assert: a leitura antiga (1000) fica fora da janela
+        // Assert: a leitura antiga (150) fica fora da janela
         assertEquals(30.0, resultado.getValorPrevisto(), 0.0001);
         assertEquals(5, resultado.getLeiturasUsadas());
     }

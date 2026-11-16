@@ -3,11 +3,13 @@ package territory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import territory.dominio.Alerta;
 import territory.dominio.Medicao;
 import territory.dominio.PontoMonitoramento;
 import territory.dominio.Sensor;
 import territory.excecao.DadosInvalidosException;
 import territory.excecao.FonteIndisponivelException;
+import territory.servico.AnaliseSensor;
 import territory.servico.ServicoMonitoramento;
 
 import java.util.List;
@@ -41,7 +43,8 @@ public class SistemaMonitoramento implements CommandLineRunner {
             }
             switch (opcao.trim()) {
                 case "1" -> verificarSensores();
-                case "3" -> verHistoricoPorSensor();
+                case "2" -> rodarPrevisoes();
+                case "3" -> menuHistorico();
                 case "0" -> executando = false;
                 default -> System.out.println("Opção inválida: digite um dos números do menu.");
             }
@@ -53,7 +56,8 @@ public class SistemaMonitoramento implements CommandLineRunner {
         System.out.println();
         System.out.println("===== TERRITORY PREDICTIVE INSIGHTS - Clima Local =====");
         System.out.println("1 - Verificar sensores (ler e gravar medições)");
-        System.out.println("3 - Ver histórico de medições por sensor");
+        System.out.println("2 - Rodar previsões e alertas");
+        System.out.println("3 - Ver histórico (medições e alertas)");
         System.out.println("0 - Sair");
     }
 
@@ -74,6 +78,47 @@ public class SistemaMonitoramento implements CommandLineRunner {
                 }
             }
         }
+    }
+
+    private void rodarPrevisoes() {
+        List<AnaliseSensor> analises = servico.rodarPrevisoes();
+        int alertas = 0;
+        for (AnaliseSensor analise : analises) {
+            if (analise.getPrevisao().isEmpty()) {
+                System.out.printf("  %-7s [%s] sem previsão: %s.%n", analise.getSensorId(),
+                        analise.getEstrategia(), analise.getMotivoSemPrevisao());
+                continue;
+            }
+            System.out.println("  " + analise.getPrevisao().get());
+            if (analise.getAlerta().isPresent()) {
+                System.out.println("    >>> " + analise.getAlerta().get().getMensagem());
+                alertas++;
+            } else {
+                System.out.println("    Nenhum limiar atingido.");
+            }
+        }
+        System.out.println(alertas + " alerta(s) emitido(s) e gravado(s) no banco.");
+    }
+
+    private void menuHistorico() {
+        System.out.println("1 - Medições por sensor");
+        System.out.println("2 - Alertas já emitidos");
+        String opcao = lerLinha("Escolha: ");
+        switch (opcao == null ? "" : opcao.trim()) {
+            case "1" -> verHistoricoPorSensor();
+            case "2" -> verAlertasEmitidos();
+            default -> System.out.println("Opção inválida no histórico.");
+        }
+    }
+
+    private void verAlertasEmitidos() {
+        List<Alerta> alertas = servico.listarAlertasEmitidos();
+        if (alertas.isEmpty()) {
+            System.out.println("Nenhum alerta emitido até agora.");
+            return;
+        }
+        System.out.println("Alertas emitidos (mais recente primeiro):");
+        alertas.forEach(a -> System.out.println("  " + a));
     }
 
     private void verHistoricoPorSensor() {

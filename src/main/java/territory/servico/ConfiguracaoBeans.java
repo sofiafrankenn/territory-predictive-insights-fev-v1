@@ -39,7 +39,7 @@ public class ConfiguracaoBeans {
     @Bean
     public List<PontoMonitoramento> pontosMonitoramento(DadosTerritorio dadosTerritorio)
             throws DadosInvalidosException {
-        PontoMonitoramento ponto = new PontoMonitoramento("P1", "Ponto de monitoramento 1",
+        PontoMonitoramento ponto = new PontoMonitoramento("P1", "Margem do Rio Tietê",
                 dadosTerritorio.getRegiao());
         ponto.adicionarSensor(new SensorPluviometrico("PLU-01"));
         ponto.adicionarSensor(new SensorNivelRio("RIO-01"));

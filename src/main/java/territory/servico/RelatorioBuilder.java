@@ -3,6 +3,7 @@ package territory.servico;
 import territory.dominio.Alerta;
 import territory.dominio.DadosTerritorio;
 import territory.dominio.Limiares;
+import territory.dominio.Medicao;
 import territory.dominio.PontoMonitoramento;
 import territory.dominio.Sensor;
 import territory.dominio.TipoSensor;
@@ -58,17 +59,12 @@ public class RelatorioBuilder {
         return this;
     }
 
-    public RelatorioBuilder comAnalises(List<AnaliseSensor> analises) {
-        StringBuilder secao = new StringBuilder("\n-- Previsões --\n");
-        for (AnaliseSensor analise : analises) {
-            if (analise.getPrevisao().isPresent()) {
-                secao.append(analise.getPrevisao().get()).append('\n');
-                analise.getAlerta().ifPresent(a -> secao.append("   >>> ").append(a.getMensagem()).append('\n'));
-            } else {
-                secao.append(String.format("[%s] %s: sem previsão (%s)%n", analise.getEstrategia(),
-                        analise.getSensorId(), analise.getMotivoSemPrevisao()));
-            }
+    public RelatorioBuilder comUltimasMedicoes(List<Medicao> medicoes) {
+        StringBuilder secao = new StringBuilder("\n-- Última medição de cada sensor --\n");
+        if (medicoes.isEmpty()) {
+            secao.append("Nenhuma medição gravada ainda.");
         }
+        medicoes.forEach(m -> secao.append(m).append('\n'));
         secoes.add(secao.toString().stripTrailing());
         return this;
     }

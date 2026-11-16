@@ -85,6 +85,15 @@ public class ServicoMonitoramento {
         return medicaoRepository.findBySensorIdOrderByDataHoraDesc(sensor.getId());
     }
 
+    /** Última medição gravada de cada sensor (sensores sem histórico ficam de fora). */
+    public List<Medicao> buscarUltimasMedicoes() {
+        List<Medicao> ultimas = new ArrayList<>();
+        for (Sensor sensor : listarSensores()) {
+            medicaoRepository.findFirstBySensorIdOrderByDataHoraDesc(sensor.getId()).ifPresent(ultimas::add);
+        }
+        return ultimas;
+    }
+
     public List<Alerta> listarAlertasEmitidos() {
         return alertaRepository.findAllByOrderByDataHoraDesc();
     }

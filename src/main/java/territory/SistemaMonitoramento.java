@@ -110,7 +110,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
                 .comDataGeracao(LocalDateTime.now())
                 .comDadosTerritorio(servico.getDadosTerritorio())
                 .comPontos(servico.getPontos())
-                .comAnalises(servico.rodarPrevisoes())
+                .comUltimasMedicoes(servico.buscarUltimasMedicoes())
                 .comAlertasEmitidos(servico.listarAlertasEmitidos(), 5)
                 .construir()
                 .formatar();

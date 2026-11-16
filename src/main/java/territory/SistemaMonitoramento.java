@@ -13,9 +13,12 @@ import territory.dominio.TipoSensor;
 import territory.excecao.DadosInvalidosException;
 import territory.excecao.FonteIndisponivelException;
 import territory.servico.AnaliseSensor;
+import territory.servico.ExportadorCsv;
 import territory.servico.RelatorioBuilder;
 import territory.servico.ServicoMonitoramento;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
@@ -28,6 +31,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
 
     private final ServicoMonitoramento servico;
     private final Scanner scanner = new Scanner(System.in);
+    private final ExportadorCsv exportadorCsv = new ExportadorCsv(Path.of("exportacoes"));
 
     public SistemaMonitoramento(ServicoMonitoramento servico) {
         this.servico = servico;
@@ -170,11 +174,26 @@ public class SistemaMonitoramento implements CommandLineRunner {
     private void menuHistorico() {
         System.out.println("1 - Medições por sensor");
         System.out.println("2 - Alertas já emitidos");
+        System.out.println("3 - Exportar histórico de um sensor em CSV");
         String opcao = lerLinha("Escolha: ");
         switch (opcao == null ? "" : opcao.trim()) {
             case "1" -> verHistoricoPorSensor();
             case "2" -> verAlertasEmitidos();
+            case "3" -> exportarHistoricoCsv();
             default -> System.out.println("Opção inválida no histórico.");
+        }
+    }
+
+    private void exportarHistoricoCsv() {
+        String sensorId = lerSensorId();
+        try {
+            List<Medicao> historico = servico.buscarHistoricoPorSensor(sensorId);
+            Path arquivo = exportadorCsv.exportarHistorico(servico.buscarSensor(sensorId).getId(), historico);
+            System.out.println(historico.size() + " medição(ões) exportada(s) para " + arquivo.toAbsolutePath());
+        } catch (DadosInvalidosException e) {
+            System.out.println("Não foi possível exportar: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("Falha ao gravar o arquivo CSV: " + e.getMessage());
         }
     }
 

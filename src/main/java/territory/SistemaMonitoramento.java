@@ -10,8 +10,10 @@ import territory.dominio.Sensor;
 import territory.excecao.DadosInvalidosException;
 import territory.excecao.FonteIndisponivelException;
 import territory.servico.AnaliseSensor;
+import territory.servico.RelatorioBuilder;
 import territory.servico.ServicoMonitoramento;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
@@ -45,6 +47,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
                 case "1" -> verificarSensores();
                 case "2" -> rodarPrevisoes();
                 case "3" -> menuHistorico();
+                case "5" -> exibirStatusCompleto();
                 case "0" -> executando = false;
                 default -> System.out.println("Opção inválida: digite um dos números do menu.");
             }
@@ -58,6 +61,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
         System.out.println("1 - Verificar sensores (ler e gravar medições)");
         System.out.println("2 - Rodar previsões e alertas");
         System.out.println("3 - Ver histórico (medições e alertas)");
+        System.out.println("5 - Status completo");
         System.out.println("0 - Sair");
     }
 
@@ -98,6 +102,19 @@ public class SistemaMonitoramento implements CommandLineRunner {
             }
         }
         System.out.println(alertas + " alerta(s) emitido(s) e gravado(s) no banco.");
+    }
+
+    private void exibirStatusCompleto() {
+        String relatorio = new RelatorioBuilder()
+                .comTitulo("STATUS COMPLETO - " + servico.getDadosTerritorio().getRegiao())
+                .comDataGeracao(LocalDateTime.now())
+                .comDadosTerritorio(servico.getDadosTerritorio())
+                .comPontos(servico.getPontos())
+                .comAnalises(servico.rodarPrevisoes())
+                .comAlertasEmitidos(servico.listarAlertasEmitidos(), 5)
+                .construir()
+                .formatar();
+        System.out.println(relatorio);
     }
 
     private void menuHistorico() {

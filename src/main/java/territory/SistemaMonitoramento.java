@@ -4,9 +4,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import territory.dominio.Alerta;
+import territory.dominio.DadosTerritorio;
+import territory.dominio.Limiares;
 import territory.dominio.Medicao;
 import territory.dominio.PontoMonitoramento;
 import territory.dominio.Sensor;
+import territory.dominio.TipoSensor;
 import territory.excecao.DadosInvalidosException;
 import territory.excecao.FonteIndisponivelException;
 import territory.servico.AnaliseSensor;
@@ -47,6 +50,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
                 case "1" -> verificarSensores();
                 case "2" -> rodarPrevisoes();
                 case "3" -> menuHistorico();
+                case "4" -> gerenciarDadosTerritorio();
                 case "5" -> exibirStatusCompleto();
                 case "0" -> executando = false;
                 default -> System.out.println("Opção inválida: digite um dos números do menu.");
@@ -61,6 +65,7 @@ public class SistemaMonitoramento implements CommandLineRunner {
         System.out.println("1 - Verificar sensores (ler e gravar medições)");
         System.out.println("2 - Rodar previsões e alertas");
         System.out.println("3 - Ver histórico (medições e alertas)");
+        System.out.println("4 - Gerenciar dados do território");
         System.out.println("5 - Status completo");
         System.out.println("0 - Sair");
     }
@@ -102,6 +107,51 @@ public class SistemaMonitoramento implements CommandLineRunner {
             }
         }
         System.out.println(alertas + " alerta(s) emitido(s) e gravado(s) no banco.");
+    }
+
+    private void gerenciarDadosTerritorio() {
+        DadosTerritorio dados = servico.getDadosTerritorio();
+        System.out.printf("Região: %s | População: %d%n", dados.getRegiao(), dados.getPopulacao());
+        System.out.println("1 - Alterar região");
+        System.out.println("2 - Alterar população");
+        System.out.println("3 - Alterar limiares de um sensor (exige código de acesso)");
+        String opcao = lerLinha("Escolha: ");
+        try {
+            switch (opcao == null ? "" : opcao.trim()) {
+                case "1" -> {
+                    dados.setRegiao(lerLinha("Nova região: "));
+                    System.out.println("Região atualizada.");
+                }
+                case "2" -> {
+                    dados.setPopulacao(Integer.parseInt(lerTexto("Nova população: ")));
+                    System.out.println("População atualizada.");
+                }
+                case "3" -> alterarLimiares(dados);
+                default -> System.out.println("Opção inválida em gerenciar dados.");
+            }
+        } catch (DadosInvalidosException e) {
+            System.out.println("Dados não alterados: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Dados não alterados: digite um número válido (ex.: 1500 ou 12.5).");
+        }
+    }
+
+    private void alterarLimiares(DadosTerritorio dados) throws DadosInvalidosException {
+        TipoSensor[] tipos = TipoSensor.values();
+        for (int i = 0; i < tipos.length; i++) {
+            System.out.printf("%d - %s (%s)%n", i + 1, tipos[i].getDescricao(), tipos[i].getUnidade());
+        }
+        int indice = Integer.parseInt(lerTexto("Tipo de sensor: ")) - 1;
+        if (indice < 0 || indice >= tipos.length) {
+            throw new DadosInvalidosException("tipo de sensor inexistente: " + (indice + 1));
+        }
+        TipoSensor tipo = tipos[indice];
+        double atencao = Double.parseDouble(lerTexto("Limiar de ATENÇÃO: ").replace(',', '.'));
+        double alerta = Double.parseDouble(lerTexto("Limiar de ALERTA: ").replace(',', '.'));
+        double critico = Double.parseDouble(lerTexto("Limiar de CRÍTICO: ").replace(',', '.'));
+        String codigo = lerTexto("Código de acesso: ");
+        dados.alterarLimiares(codigo, tipo, new Limiares(atencao, alerta, critico));
+        System.out.println("Limiares de " + tipo.getDescricao() + " atualizados.");
     }
 
     private void exibirStatusCompleto() {
@@ -161,6 +211,12 @@ public class SistemaMonitoramento implements CommandLineRunner {
         System.out.println("Sensores: " + ids);
         String id = lerLinha("Informe o id do sensor: ");
         return id == null ? "" : id.trim();
+    }
+
+    /** Lê uma linha sem espaços nas pontas; fim da entrada vira texto vazio. */
+    private String lerTexto(String mensagem) {
+        String linha = lerLinha(mensagem);
+        return linha == null ? "" : linha.trim();
     }
 
     private String lerLinha(String mensagem) {

@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import territory.dominio.DadosTerritorio;
+import territory.dominio.EstrategiaPrevisao;
 import territory.dominio.Limiares;
 import territory.dominio.PontoMonitoramento;
+import territory.dominio.PrevisaoComparacao;
+import territory.dominio.PrevisaoMediaMovel;
 import territory.dominio.SensorNivelBueiro;
 import territory.dominio.SensorNivelRio;
 import territory.dominio.SensorPluviometrico;
@@ -42,5 +45,11 @@ public class ConfiguracaoBeans {
         ponto.adicionarSensor(new SensorNivelRio("RIO-01"));
         ponto.adicionarSensor(new SensorNivelBueiro("BUE-01"));
         return List.of(ponto);
+    }
+
+    /** Estratégias que rodam sobre o histórico; o serviço usa todas de forma polimórfica. */
+    @Bean
+    public List<EstrategiaPrevisao> estrategiasPrevisao() {
+        return List.of(new PrevisaoMediaMovel(5), new PrevisaoComparacao(3));
     }
 }

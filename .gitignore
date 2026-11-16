@@ -1,0 +1,14 @@
+# Maven
+target/
+
+# Banco H2 local (gerado ao rodar a aplicação)
+data/
+
+# Exportações CSV geradas pelo menu
+exportacoes/
+
+# IDEs / SO
+.idea/
+*.iml
+.vscode/
+.DS_Store
